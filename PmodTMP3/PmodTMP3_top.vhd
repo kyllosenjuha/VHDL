@@ -66,9 +66,9 @@ component Twos_Complement is
 		resolution       : INTEGER := 10
 		);
 	port(
-		i_clk 			 : in std_logic;
-		i_data_in 		 : in std_logic_vector(resolution-1 DOWNTO 0);
-		o_sign 			 : out std_logic;
+		i_clk 		 : in std_logic;
+		i_data_in        : in std_logic_vector(resolution-1 DOWNTO 0);
+		o_sign 		 : out std_logic;
 		o_integer_number : out std_logic_vector(6 downto 0);
 		o_decimal_number : out std_logic_vector(resolution-9 downto 0)
 		);
