@@ -44,7 +44,7 @@ begin
 			v_dec_number := v_total_number(resolution-9 downto 0);
 		end if;
 		
-		o_sign 			 <= v_sign_mark;
+		o_sign <= v_sign_mark;
 		o_integer_number <= v_int_number;
 		o_decimal_number <= v_dec_number;
 	end if;
