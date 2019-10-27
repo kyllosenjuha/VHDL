@@ -50,7 +50,7 @@ ARCHITECTURE behavior OF pmod_temp_sensor_tcn75a IS
   SIGNAL busy_prev   : STD_LOGIC;                     --previous value of i2c busy signal
   SIGNAL temp_data   : STD_LOGIC_VECTOR(15 DOWNTO 0); --temperature data buffer
 
-  COMPONENT i2c_master IS
+  component i2c_master IS
     GENERIC(
      input_clk : INTEGER;  --input clock speed from user logic in Hz
      bus_clk   : INTEGER); --speed the i2c bus (scl) will run at in Hz
@@ -65,8 +65,9 @@ ARCHITECTURE behavior OF pmod_temp_sensor_tcn75a IS
      data_rd   : OUT    STD_LOGIC_VECTOR(7 DOWNTO 0); --data read from slave
      ack_error : BUFFER STD_LOGIC;                    --flag if improper acknowledge from slave
      sda       : INOUT  STD_LOGIC;                    --serial data output of i2c bus
-     scl       : INOUT  STD_LOGIC);                   --serial clock output of i2c bus
-  END COMPONENT;
+     scl       : INOUT  STD_LOGIC                     --serial clock output of i2c bus
+    );                   
+  end component;
 
 BEGIN
 
