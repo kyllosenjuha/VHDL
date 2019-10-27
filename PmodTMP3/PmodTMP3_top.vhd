@@ -150,7 +150,7 @@ begin
 	p_RESET : process(i_Clk) is
 	begin
 		if rising_edge(i_Clk) then
-			if r_COUNT < 2000 then
+			if (r_COUNT < 2000) then
 				r_COUNT <= r_COUNT + 1;
 				w_reset_n <= '0';
 			else
