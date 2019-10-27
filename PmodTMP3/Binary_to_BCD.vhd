@@ -82,8 +82,8 @@ end process p_Reset_SM;
           if i_Start = '1' then
             r_BCD     <= (others => '0');
             r_Binary  <= i_Binary;
-			r_sign <= i_sign;
-			r_decimal <= i_decimal_part;
+	    r_sign <= i_sign;
+	    r_decimal <= i_decimal_part;
             r_SM_Main <= s_SHIFT;
           else
             r_SM_Main <= s_IDLE;
