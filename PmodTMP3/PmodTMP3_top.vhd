@@ -173,7 +173,7 @@ begin
 				 o_Switch => w_Switch_3_debounce
 				);
 				
-	inst_pmod_temp_sensor : pmod_temp_sensor_tcn75a
+	Inst_pmod_temp_sensor : pmod_temp_sensor_tcn75a
 		port map(
 				clk => i_Clk,
 				reset_n => w_reset_n,
