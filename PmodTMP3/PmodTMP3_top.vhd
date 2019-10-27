@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 
 entity PmodTMP3_top is
 	generic(
-		g_resolution : INTEGER := 10;
+		g_resolution     : INTEGER := 10;
 		g_DECIMAL_DIGITS : positive := 3
 		);
 	port(
@@ -113,9 +113,9 @@ end component Seven_Segments;
 
 component Binary_to_BCD is
   generic (
-    g_resolution       : INTEGER := 10;    
-    g_INPUT_WIDTH    : in positive := 7;
-    g_DECIMAL_DIGITS : in positive := 3
+    g_resolution     : INTEGER := 10;    
+    g_INPUT_WIDTH    : positive := 7;
+    g_DECIMAL_DIGITS : positive := 3
     );
   port (
     i_Clock  : in std_logic;
