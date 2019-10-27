@@ -142,15 +142,16 @@ component pmod_temp_sensor_tcn75a IS
     scl         : INOUT STD_LOGIC;                                 --I2C serial clock
     sda         : INOUT STD_LOGIC;                                 --I2C serial data
     i2c_ack_err : OUT   STD_LOGIC;                                 --I2C slave acknowledge error flag
-    temperature : OUT   STD_LOGIC_VECTOR(resolution-1 DOWNTO 0));  --temperature value obtained
-END component pmod_temp_sensor_tcn75a;
+    temperature : OUT   STD_LOGIC_VECTOR(resolution-1 DOWNTO 0)    --temperature value obtained
+    );  
+end component pmod_temp_sensor_tcn75a;
 
 begin
 
 	p_RESET : process(i_Clk) is
 	begin
 		if rising_edge(i_Clk) then
-			if (r_COUNT < 2000) then
+			if r_COUNT < 2000 then
 				r_COUNT <= r_COUNT + 1;
 				w_reset_n <= '0';
 			else
