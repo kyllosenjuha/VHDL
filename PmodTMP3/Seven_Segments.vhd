@@ -3,8 +3,8 @@ use ieee.std_logic_1164.all;
 
 entity Seven_Segments is
 	generic(
-		g_resolution       : INTEGER := 10;   
-		g_DECIMAL_DIGITS : in positive := 3
+		g_resolution     : INTEGER := 10;   
+		g_DECIMAL_DIGITS : positive := 3
 		);
 	port(
 		i_Clk : in std_logic;
