@@ -15,12 +15,12 @@ entity Binary_to_BCD is
     i_Clock  : in std_logic;
     i_Start  : in std_logic;
     i_Binary : in std_logic_vector(g_INPUT_WIDTH-1 downto 0);
-	i_sign : in std_logic;
-	i_decimal_part : in std_logic_vector(g_resolution-9 downto 0);
+    i_sign : in std_logic;
+    i_decimal_part : in std_logic_vector(g_resolution-9 downto 0);
      
     o_BCD : out std_logic_vector(g_DECIMAL_DIGITS*4-1 downto 0);
-	o_sign_mark : out std_logic;
-	o_dec_part : out std_logic_vector(g_resolution-9 downto 0);
+    o_sign_mark : out std_logic;
+    o_dec_part : out std_logic_vector(g_resolution-9 downto 0);
     o_DV  : out std_logic
     );
 end entity Binary_to_BCD;
