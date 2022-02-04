@@ -59,9 +59,9 @@ constant c_seven 	: std_logic_vector(7 downto 0) := X"70";
 constant c_eight 	: std_logic_vector(7 downto 0) := X"7F";
 constant c_nine 	: std_logic_vector(7 downto 0) := X"7B";
 
-constant c_one_kHz : integer := 25000;
-signal w_counter : integer := 0;
-signal w_upp_time : integer := 0;
+constant c_500_Hz : integer := 50000;
+signal r_counter : integer := 0;
+signal r_upp_time : integer := 0;
 signal w_Switch_1_debounce : std_logic;
 signal w_Switch_2_debounce : std_logic;
 	
@@ -107,16 +107,16 @@ Initialize_SM : process (i_Clk) is
 				 o_Switch => w_Switch_2_debounce
 				);
 				
-	kiloHz : process (i_Clk) is
+	kiloHz : process (r_RESET_LOW_SM, i_Clk) is
 	begin
-	
-		if rising_edge(i_Clk) then
+	if r_RESET_LOW_SM = '0' then
+		elsif rising_edge(i_Clk) then
 			
 		
-		    if w_counter < c_one_kHz then
-				w_counter <= w_counter + 1;
+		    if r_counter < c_500_Hz then
+				r_counter <= r_counter + 1;
 			else
-				w_counter <= 0;
+				r_counter <= 0;
 			end if;
 		end if;
 		
@@ -127,7 +127,7 @@ Initialize_SM : process (i_Clk) is
 	variable v_LED : std_logic_vector(3 downto 0);
 	
 	begin
-		if w_counter < w_upp_time then
+		if r_counter < r_upp_time then
 			v_LED := "1111";
 		else
 			v_LED := "0000";
@@ -165,77 +165,77 @@ variable v_Segment2 : std_logic_vector(7 downto 0);
 		case r_SM_PWM is
 				
 			when s_PWM_0 =>
-				w_upp_time <= 2500/2;
+				r_upp_time <= 5000;
 				r_SM_PWM <= s_PWM_10;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_one;
 				
 				
 			when s_PWM_10 =>
-				w_upp_time <= 2500;
+				r_upp_time <= 10000;
 				r_SM_PWM <= s_PWM_20;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_two;
 				
 
 			when s_PWM_20 =>
-				w_upp_time <= 2500*3/2;
+				r_upp_time <= 15000;
 				r_SM_PWM <= s_PWM_30;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_three;
 				
 				
 			when s_PWM_30 =>
-				w_upp_time <= 2500*2;
+				r_upp_time <= 20000;
 				r_SM_PWM <= s_PWM_40;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_four;
 				
 				
 			when s_PWM_40 =>
-				w_upp_time <= 2500*5/2;
+				r_upp_time <= 25000;
 				r_SM_PWM <= s_PWM_50;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_five;
 			
 				
 			when s_PWM_50 =>
-				w_upp_time <= 2500*3;
+				r_upp_time <= 30000;
 				r_SM_PWM <= s_PWM_60;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_six;
 				
 				
 			when s_PWM_60 =>
-				w_upp_time <= 2500*7/2;
+				r_upp_time <= 35000;
 				r_SM_PWM <= s_PWM_70;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_seven;
 				
 				
 			when s_PWM_70 =>
-				w_upp_time <= 2500*4;
+				r_upp_time <= 40000;
 				r_SM_PWM <= s_PWM_80;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_eight;
 			
 				
 			when s_PWM_80 =>
-				w_upp_time <= 2500*9/2;
+				r_upp_time <= 45000;
 				r_SM_PWM <= s_PWM_90;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_nine;
 			
 				
 			when s_PWM_90 =>
-				w_upp_time <= 2500*5;
+				r_upp_time <= 50000;
 				r_SM_PWM <= s_PWM_100;
 				v_Segment1 := c_one;
 				v_Segment2 := c_zero;
 			
 				
 			when s_PWM_100 =>
-				w_upp_time <= 2500*5;
+				r_upp_time <= 50000;
 				r_SM_PWM <= s_PWM_100;
 				v_Segment1 := c_one;
 				v_Segment2 := c_zero;
@@ -251,77 +251,77 @@ variable v_Segment2 : std_logic_vector(7 downto 0);
 		case r_SM_PWM is
 				
 			when s_PWM_0 =>
-				w_upp_time <= 2500*0;
+				r_upp_time <= 0;
 				r_SM_PWM <= s_PWM_0;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_zero;
 			
 				
 			when s_PWM_10 =>
-				w_upp_time <= 2500*0;
+				r_upp_time <= 0;
 				r_SM_PWM <= s_PWM_0;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_zero;
 			
 
 			when s_PWM_20 =>
-				w_upp_time <= 2500/2;
+				r_upp_time <= 5000;
 				r_SM_PWM <= s_PWM_10;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_one;
 			
 				
 			when s_PWM_30 =>
-				w_upp_time <= 2500;
+				r_upp_time <= 10000;
 				r_SM_PWM <= s_PWM_20;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_two;
 			
 				
 			when s_PWM_40 =>
-				w_upp_time <= 2500*3/2;
+				r_upp_time <= 15000;
 				r_SM_PWM <= s_PWM_30;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_three;
 			
 				
 			when s_PWM_50 =>
-				w_upp_time <= 2500*2;
+				r_upp_time <= 20000;
 				r_SM_PWM <= s_PWM_40;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_four;
 			
 				
 			when s_PWM_60 =>
-				w_upp_time <= 2500*5/2;
+				r_upp_time <= 25000;
 				r_SM_PWM <= s_PWM_50;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_five;
 			
 				
 			when s_PWM_70 =>
-				w_upp_time <= 2500*3;
+				r_upp_time <= 30000;
 				r_SM_PWM <= s_PWM_60;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_six;
 			
 				
 			when s_PWM_80 =>
-				w_upp_time <= 2500*7/2;
+				r_upp_time <= 35000;
 				r_SM_PWM <= s_PWM_70;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_seven;
 			
 				
 			when s_PWM_90 =>
-				w_upp_time <= 2500*4;
+				r_upp_time <= 40000;
 				r_SM_PWM <= s_PWM_80;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_eight;
 			
 				
 			when s_PWM_100 =>
-				w_upp_time <= 2500*9/2;
+				r_upp_time <= 45000;
 				r_SM_PWM <= s_PWM_90;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_nine;
