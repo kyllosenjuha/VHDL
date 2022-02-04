@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity PWM_led_top is
+entity PWM_breath_led_top is
 	port(
 		i_Clk 	   : in std_logic;
 		i_Switch_1 : in std_logic;
@@ -29,14 +29,16 @@ entity PWM_led_top is
 		o_Segment2_F : out std_logic;
 		o_Segment2_G : out std_logic
 		);
-end PWM_led_top;
+end PWM_breath_led_top;
 
-architecture behave of PWM_led_top is
+architecture behave of PWM_breath_led_top is
 
+type t_suunta is (ylos, alas);
 type t_SM_PWM is (s_PWM_0, s_PWM_10, s_PWM_20, s_PWM_30, s_PWM_40, s_PWM_50,
 				  s_PWM_60, s_PWM_70, s_PWM_80, s_PWM_90, s_PWM_100);
 
 signal r_SM_PWM : t_SM_PWM;
+signal r_suunta : t_suunta;
 signal r_Count_SM : integer range 0 to 20000 := 0;
 signal r_RESET_LOW_SM : std_logic := '0';
 signal r_Segment1 : std_logic_vector(7 downto 0);
@@ -59,19 +61,17 @@ constant c_seven 	: std_logic_vector(7 downto 0) := X"70";
 constant c_eight 	: std_logic_vector(7 downto 0) := X"7F";
 constant c_nine 	: std_logic_vector(7 downto 0) := X"7B";
 
-constant c_one_kHz : integer := 12500;
-constant c_2Hz : integer := 50000000;
+constant c_500_Hz : integer := 50000;
 
-signal w_counter : integer := 0;
-signal w_upp_time : integer := 0;
+signal r_counter : integer range 0 to c_500_Hz := 0;
+signal r_upp_time : integer := 0;
 signal w_Switch_1_debounce : std_logic;
 signal w_Switch_2_debounce : std_logic;
 
-signal r_2ms : integer := 0;
+signal r_40ms : integer := 0;
 signal r_hundred : integer range 0 to 100 := 0;
 signal r_uptime : integer := 0;
-signal r_2Hz : integer := 0;
-signal r_kilohertsi : std_logic := '0';
+
 	
 	component debounce_switch is
 	  port (
@@ -102,7 +102,6 @@ Initialize_SM : process (i_Clk) is
 	end process Initialize_SM;
 	
 	
-
 	Inst_switch_1 : debounce_switch
 		port map(i_Clk      => i_Clk,
 				 i_Switch => i_Switch_1,
@@ -115,66 +114,66 @@ Initialize_SM : process (i_Clk) is
 				 o_Switch => w_Switch_2_debounce
 				);
 	
-twoHz : process (i_Clk) is
+	freq500Hz : process (r_RESET_LOW_SM, i_Clk) is
 	begin
 	
-		if rising_edge(i_Clk) then
+	if (r_RESET_LOW_SM = '0') then
+			r_counter <= 0;
+	
+		elsif rising_edge(i_Clk) then
 			
 		
-		    if r_2Hz < c_2Hz then
-				r_2Hz <= r_2Hz + 1;
+		    if r_counter < c_500_Hz then
+				r_counter <= r_counter + 1;
 			else
-				r_2Hz <= 0;
-			end if;
-		end if;
-	end process twoHz;	
-
-
-	
-	kiloHz : process (i_Clk) is
-	begin
-	
-		if rising_edge(i_Clk) then
-			
-		
-		    if w_counter < c_one_kHz then
-				w_counter <= w_counter + 1;
-			else
-				w_counter <= 0;
+				r_counter <= 0;
 			end if;
 		end if;
 		
-	end process kiloHz;
+	end process freq500Hz;
 	
-	omapwm : process (i_Clk) is
+	omapwm : process (r_RESET_LOW_SM, i_Clk) is
 	
 	begin
-
-	if rising_edge (i_Clk) then
 	
-		if r_2ms < 500000 then 
-			r_2ms <= r_2ms + 1;
+	if (r_RESET_LOW_SM = '0') then
+			r_suunta <= ylos;
+			
+	elsif rising_edge (i_Clk) then
+	
+		if r_40ms < 1000000 then 
+			r_40ms <= r_40ms + 1;
 		else
-			r_2ms <= 0;
+			r_40ms <= 0;
 		end if;
 		
-		if r_2ms = 500000 then
-			if r_hundred < 100 then
-			r_hundred <= r_hundred + 1;
-			else
-			r_hundred <= 0;
+		if r_40ms = 1000000 then	
+			if r_suunta = ylos then
+				if r_hundred < 100 then
+					r_hundred <= r_hundred + 1;		
+				elsif r_hundred = 100 then
+					r_suunta <= alas;
+				else
+					r_suunta <= r_suunta;
+				end if;
+			elsif r_suunta = alas then
+				if r_hundred > 0 then
+					r_hundred <= r_hundred - 1;
+				elsif r_hundred = 0 then
+					r_suunta <= ylos;
+				else
+					r_suunta <= r_suunta;
+				end if;
 			end if;
 		else
 			r_hundred <= r_hundred;
 		end if;
 	end if;
 		
-	
-	r_uptime <= r_hundred * 500000;
+	r_uptime <= r_hundred * 1000000;
 
 	end process omapwm;
 	
-
 	
 	
 	uptime : process (i_Clk) is
@@ -185,7 +184,7 @@ twoHz : process (i_Clk) is
 	
 		if rising_edge (i_Clk) then
 		
-		if w_counter < (r_uptime / c_one_kHz) then
+		if r_counter < (r_uptime / 2000) then
 			v_LED := "1111";
 		else
 			v_LED := "0000";
@@ -196,8 +195,6 @@ twoHz : process (i_Clk) is
 		
 	end process uptime;
 	
-	
------------
 p_SET_SEGMENTS_AND_LEDS : process(r_RESET_LOW_SM, i_Clk) is
 
 variable v_Segment1 : std_logic_vector(7 downto 0);
@@ -224,77 +221,77 @@ variable v_Segment2 : std_logic_vector(7 downto 0);
 		case r_SM_PWM is
 				
 			when s_PWM_0 =>
-				w_upp_time <= 2500/2;
+				r_upp_time <= 5000;
 				r_SM_PWM <= s_PWM_10;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_one;
 				
 				
 			when s_PWM_10 =>
-				w_upp_time <= 2500;
+				r_upp_time <= 10000;
 				r_SM_PWM <= s_PWM_20;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_two;
 				
 
 			when s_PWM_20 =>
-				w_upp_time <= 2500*3/2;
+				r_upp_time <= 15000;
 				r_SM_PWM <= s_PWM_30;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_three;
 				
 				
 			when s_PWM_30 =>
-				w_upp_time <= 2500*2;
+				r_upp_time <= 20000;
 				r_SM_PWM <= s_PWM_40;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_four;
 				
 				
 			when s_PWM_40 =>
-				w_upp_time <= 2500*5/2;
+				r_upp_time <= 25000;
 				r_SM_PWM <= s_PWM_50;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_five;
 			
 				
 			when s_PWM_50 =>
-				w_upp_time <= 2500*3;
+				r_upp_time <= 30000;
 				r_SM_PWM <= s_PWM_60;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_six;
 				
 				
 			when s_PWM_60 =>
-				w_upp_time <= 2500*7/2;
+				r_upp_time <= 35000;
 				r_SM_PWM <= s_PWM_70;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_seven;
 				
 				
 			when s_PWM_70 =>
-				w_upp_time <= 2500*4;
+				r_upp_time <= 40000;
 				r_SM_PWM <= s_PWM_80;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_eight;
 			
 				
 			when s_PWM_80 =>
-				w_upp_time <= 2500*9/2;
+				r_upp_time <= 45000;
 				r_SM_PWM <= s_PWM_90;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_nine;
 			
 				
 			when s_PWM_90 =>
-				w_upp_time <= 2500*5;
+				r_upp_time <= 50000;
 				r_SM_PWM <= s_PWM_100;
 				v_Segment1 := c_one;
 				v_Segment2 := c_zero;
 			
 				
 			when s_PWM_100 =>
-				w_upp_time <= 2500*5;
+				r_upp_time <= 50000;
 				r_SM_PWM <= s_PWM_100;
 				v_Segment1 := c_one;
 				v_Segment2 := c_zero;
@@ -310,77 +307,77 @@ variable v_Segment2 : std_logic_vector(7 downto 0);
 		case r_SM_PWM is
 				
 			when s_PWM_0 =>
-				w_upp_time <= 2500*0;
+				r_upp_time <= 0;
 				r_SM_PWM <= s_PWM_0;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_zero;
 			
 				
 			when s_PWM_10 =>
-				w_upp_time <= 2500*0;
+				r_upp_time <= 0;
 				r_SM_PWM <= s_PWM_0;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_zero;
 			
 
 			when s_PWM_20 =>
-				w_upp_time <= 2500/2;
+				r_upp_time <= 5000;
 				r_SM_PWM <= s_PWM_10;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_one;
 			
 				
 			when s_PWM_30 =>
-				w_upp_time <= 2500;
+				r_upp_time <= 10000;
 				r_SM_PWM <= s_PWM_20;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_two;
 			
 				
 			when s_PWM_40 =>
-				w_upp_time <= 2500*3/2;
+				r_upp_time <= 15000;
 				r_SM_PWM <= s_PWM_30;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_three;
 			
 				
 			when s_PWM_50 =>
-				w_upp_time <= 2500*2;
+				r_upp_time <= 20000;
 				r_SM_PWM <= s_PWM_40;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_four;
 			
 				
 			when s_PWM_60 =>
-				w_upp_time <= 2500*5/2;
+				r_upp_time <= 25000;
 				r_SM_PWM <= s_PWM_50;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_five;
 			
 				
 			when s_PWM_70 =>
-				w_upp_time <= 2500*3;
+				r_upp_time <= 30000;
 				r_SM_PWM <= s_PWM_60;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_six;
 			
 				
 			when s_PWM_80 =>
-				w_upp_time <= 2500*7/2;
+				r_upp_time <= 35000;
 				r_SM_PWM <= s_PWM_70;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_seven;
 			
 				
 			when s_PWM_90 =>
-				w_upp_time <= 2500*4;
+				r_upp_time <= 40000;
 				r_SM_PWM <= s_PWM_80;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_eight;
 			
 				
 			when s_PWM_100 =>
-				w_upp_time <= 2500*9/2;
+				r_upp_time <= 45000;
 				r_SM_PWM <= s_PWM_90;
 				v_Segment1 := c_zero;
 				v_Segment2 := c_nine;
