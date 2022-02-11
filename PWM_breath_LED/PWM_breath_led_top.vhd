@@ -43,6 +43,8 @@ signal r_Count_SM : integer range 0 to 20000 := 0;
 signal r_RESET_LOW_SM : std_logic := '0';
 signal r_Segment1 : std_logic_vector(7 downto 0);
 signal r_Segment2 : std_logic_vector(7 downto 0);
+signal r_Segment1_sykkiva : std_logic_vector(7 downto 0);
+signal r_Segment2_sykkiva : std_logic_vector(7 downto 0);
 signal r_LED : std_logic_vector(3 downto 0);
 
 signal r_i_Switch_1_old : std_logic;
@@ -64,7 +66,7 @@ constant c_nine 	: std_logic_vector(7 downto 0) := X"7B";
 constant c_PWM_parts : integer := 100;
 constant c_PWM_frequency_Hz : integer := 500;
 constant c_clock_25MHz : integer := 25000000;
-constant c_half_period_ms : integer := 500;
+constant c_half_period_ms : integer := 1000;
 
 constant c_delay_ms : integer := c_half_period_ms/c_PWM_parts;
 constant c_delay_final_counter : integer := c_clock_25MHz*c_delay_ms/1000;
@@ -126,7 +128,7 @@ Initialize_SM : process (i_Clk) is
 				 o_Switch => w_Switch_2_debounce
 				);
 	
-	freq500Hz : process (r_RESET_LOW_SM, i_Clk) is
+	freqHz : process (r_RESET_LOW_SM, i_Clk) is
 	begin
 	
 	if (r_RESET_LOW_SM = '0') then
@@ -135,14 +137,14 @@ Initialize_SM : process (i_Clk) is
 		elsif rising_edge(i_Clk) then
 			
 		
-		    if r_counter < c_PWM_freq_counter then
+		    if r_counter < c_PWM_freq_counter-1 then
 				r_counter <= r_counter + 1;
 			else
 				r_counter <= 0;
 			end if;
 		end if;
 		
-	end process freq500Hz;
+	end process freqHz;
 	
 	omapwm : process (r_RESET_LOW_SM, i_Clk) is
 	
@@ -153,13 +155,13 @@ Initialize_SM : process (i_Clk) is
 			
 	elsif rising_edge (i_Clk) then
 	
-		if r_final < c_delay_final_counter then 
+		if r_final < c_delay_final_counter-1 then 
 			r_final <= r_final + 1;
 		else
 			r_final <= 0;
 		end if;
 		
-		if r_final = c_delay_final_counter then	
+		if r_final = c_delay_final_counter-1 then	
 			if r_suunta = ylos then
 				if r_PWM < c_PWM_parts then
 					r_PWM <= r_PWM + 1;		
@@ -409,22 +411,36 @@ variable v_Segment2 : std_logic_vector(7 downto 0);
 	
 end process p_SET_SEGMENTS_AND_LEDS;
 
+sevenSegSykkiva : process (i_Clk) is
+begin
+	if rising_edge(i_Clk) then
+		if r_counter < r_uptime then
+			r_Segment1_sykkiva <= not r_Segment1;
+			r_Segment2_sykkiva <= not r_Segment2;
+		else
+			r_Segment1_sykkiva <= X"FF";
+			r_Segment2_sykkiva <= X"FF";
+		end if;
+	end if;
+		
+end process sevenSegSykkiva; 
 
-o_Segment1_A <= not r_Segment1(6);
-o_Segment1_B <= not r_Segment1(5);
-o_Segment1_C <= not r_Segment1(4);
-o_Segment1_D <= not r_Segment1(3);
-o_Segment1_E <= not r_Segment1(2);
-o_Segment1_F <= not r_Segment1(1);
-o_Segment1_G <= not r_Segment1(0);
 
-o_Segment2_A <= not r_Segment2(6);
-o_Segment2_B <= not r_Segment2(5);
-o_Segment2_C <= not r_Segment2(4);
-o_Segment2_D <= not r_Segment2(3);
-o_Segment2_E <= not r_Segment2(2);
-o_Segment2_F <= not r_Segment2(1);
-o_Segment2_G <= not r_Segment2(0);
+o_Segment1_A <= r_Segment1_sykkiva(6);
+o_Segment1_B <= r_Segment1_sykkiva(5);
+o_Segment1_C <= r_Segment1_sykkiva(4);
+o_Segment1_D <= r_Segment1_sykkiva(3);
+o_Segment1_E <= r_Segment1_sykkiva(2);
+o_Segment1_F <= r_Segment1_sykkiva(1);
+o_Segment1_G <= r_Segment1_sykkiva(0);
+
+o_Segment2_A <= r_Segment2_sykkiva(6);
+o_Segment2_B <= r_Segment2_sykkiva(5);
+o_Segment2_C <= r_Segment2_sykkiva(4);
+o_Segment2_D <= r_Segment2_sykkiva(3);
+o_Segment2_E <= r_Segment2_sykkiva(2);
+o_Segment2_F <= r_Segment2_sykkiva(1);
+o_Segment2_G <= r_Segment2_sykkiva(0);
 
 o_LED_1 <= r_LED(3);
 o_LED_2 <= r_LED(2);
@@ -432,3 +448,4 @@ o_LED_3 <= r_LED(1);
 o_LED_4 <= r_LED(0);
 
 end behave;
+
